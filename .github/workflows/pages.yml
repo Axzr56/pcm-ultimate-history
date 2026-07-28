@@ -1,0 +1,54 @@
+name: Publier PCM Ultimate History
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Préparer le musée depuis le ZIP officiel
+        shell: bash
+        run: |
+          rm -rf extracted _site
+          mkdir -p extracted _site
+          unzip -q "PCM-Ultimate-History-2.zip" -d extracted
+          ROOT_DIR="$(find extracted -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+          test -n "$ROOT_DIR"
+          cp -a "$ROOT_DIR"/. _site/
+          HOME_PAGE="$(find "$ROOT_DIR" -mindepth 1 -maxdepth 1 -type f -name '*.html' | head -n 1)"
+          test -n "$HOME_PAGE"
+          cp "$HOME_PAGE" _site/index.html
+          touch _site/.nojekyll
+
+      - name: Configurer GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Préparer les fichiers du site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Mettre le site en ligne
+        id: deployment
+        uses: actions/deploy-pages@v4
