@@ -34,9 +34,9 @@ jobs:
           ROOT_DIR="$(find extracted -mindepth 1 -maxdepth 1 -type d | head -n 1)"
           test -n "$ROOT_DIR"
           cp -a "$ROOT_DIR"/. _site/
-          HOME_PAGE="$(find "$ROOT_DIR" -mindepth 1 -maxdepth 1 -type f -name '*.html' | head -n 1)"
-          test -n "$HOME_PAGE"
-          cp "$HOME_PAGE" _site/index.html
+          # L'accueil officiel est toujours le musée public des 72 coureurs.
+          # Ne jamais le remplacer par le premier HTML trouvé (par exemple le Championnat).
+          test -f _site/index.html
           touch _site/.nojekyll
 
       - name: Configurer GitHub Pages
